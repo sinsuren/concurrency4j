@@ -1,50 +1,27 @@
 package in.sinsuren.concurrency.print.order;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 
 public class Foo {
 
-  private final Object lock = new Object();
-  private boolean isFirstDone = false;
-  private boolean isSecondDone = false;
+  private Semaphore secondSemaphore = new Semaphore(0);
+  private Semaphore thirdSemaphore = new Semaphore(0);
 
   public Foo() {}
 
   public void first(Runnable printFirst) throws InterruptedException {
-
-    // printFirst.run() outputs "first". Do not change or remove this line.
-    synchronized (lock) {
-      printFirst.run();
-      isFirstDone = true;
-      lock.notifyAll();
-    }
+    printFirst.run();
+    secondSemaphore.release(); // signal second can proceed
   }
 
   public void second(Runnable printSecond) throws InterruptedException {
-
-    synchronized (lock) {
-      while (!isFirstDone) {
-        System.out.println("sleeping second one");
-        lock.wait();
-      }
-
-      printSecond.run();
-      isSecondDone = true;
-
-      lock.notifyAll();
-    }
+    secondSemaphore.acquire(); // wait for first to complete
+    printSecond.run();
+    thirdSemaphore.release(); // signal third can proceed
   }
 
   public void third(Runnable printThird) throws InterruptedException {
-
-    synchronized (lock) {
-      while (!isSecondDone) {
-        System.out.println("sleeping third one");
-        lock.wait();
-      }
-
-      printThird.run();
-      lock.notifyAll();
-    }
+    thirdSemaphore.acquire(); // wait for second to complete
+    printThird.run();
   }
 }
