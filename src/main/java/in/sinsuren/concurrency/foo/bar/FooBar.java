@@ -1,12 +1,12 @@
 package in.sinsuren.concurrency.foo.bar;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.CountDownLatch;
 
 public class FooBar {
 
   private int n;
-  private Semaphore fooSemaphore = new Semaphore(1);
-  private Semaphore barSemaphore = new Semaphore(0);
+  private CountDownLatch fooLatch = new CountDownLatch(0);
+  private CountDownLatch barLatch = new CountDownLatch(1);
 
   public FooBar(int n) {
     this.n = n;
@@ -14,17 +14,19 @@ public class FooBar {
 
   public void foo(Runnable printFoo) throws InterruptedException {
     for (int i = 0; i < n; i++) {
-      fooSemaphore.acquire();
+      fooLatch.await();
       printFoo.run();
-      barSemaphore.release();
+      fooLatch = new CountDownLatch(1);
+      barLatch.countDown();
     }
   }
 
   public void bar(Runnable printBar) throws InterruptedException {
     for (int i = 0; i < n; i++) {
-      barSemaphore.acquire();
+      barLatch.await();
       printBar.run();
-      fooSemaphore.release();
+      barLatch = new CountDownLatch(1);
+      fooLatch.countDown();
     }
   }
 }
