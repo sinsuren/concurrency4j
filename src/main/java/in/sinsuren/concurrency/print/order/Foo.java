@@ -16,14 +16,14 @@ public class Foo {
   }
 
   public void second(Runnable printSecond) throws InterruptedException {
-    phaser.awaitAdvance(0); // wait for first to complete
-    printSecond.run();
     phaser.arriveAndAwaitAdvance();
+    printSecond.run();
+    phaser.awaitAdvance(0); // wait for first to complete
   }
 
   public void third(Runnable printThird) throws InterruptedException {
-    phaser.awaitAdvance(1); // wait for second to complete
-    printThird.run();
     phaser.arriveAndAwaitAdvance();
+    printThird.run();
+    phaser.awaitAdvance(1); // wait for second to complete
   }
 }

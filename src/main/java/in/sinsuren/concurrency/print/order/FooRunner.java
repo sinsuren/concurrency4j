@@ -7,7 +7,7 @@ import java.util.concurrent.Phaser;
 
 public class FooRunner {
   public static void main(String[] args) {
-    Phaser phaser = new Phaser(2);
+    Phaser phaser = new Phaser(0);
     Foo foo = new Foo(phaser);
     ExecutorService executors = Executors.newFixedThreadPool(3);
     Runnable first = new PhaseRunner(phaser, "first");
