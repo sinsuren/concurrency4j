@@ -1,12 +1,11 @@
 package in.sinsuren.concurrency.foo.bar;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 public class FooBar {
 
   private int n;
-  private CountDownLatch fooLatch = new CountDownLatch(0);
-  private CountDownLatch barLatch = new CountDownLatch(1);
+  private CyclicBarrier barrier = new CyclicBarrier(2); // For 2 threads
 
   public FooBar(int n) {
     this.n = n;
@@ -14,19 +13,23 @@ public class FooBar {
 
   public void foo(Runnable printFoo) throws InterruptedException {
     for (int i = 0; i < n; i++) {
-      fooLatch.await();
       printFoo.run();
-      fooLatch = new CountDownLatch(1);
-      barLatch.countDown();
+      try {
+        barrier.await(); // Wait for bar to finish
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   public void bar(Runnable printBar) throws InterruptedException {
     for (int i = 0; i < n; i++) {
-      barLatch.await();
+      try {
+        barrier.await(); // Wait for foo to finish
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       printBar.run();
-      barLatch = new CountDownLatch(1);
-      fooLatch.countDown();
     }
   }
 }

@@ -8,7 +8,7 @@ public class FooRunner {
   public static void main(String[] args) {
 
     FooBar foo = new FooBar(4);
-    ExecutorService executors = Executors.newFixedThreadPool(3);
+    ExecutorService executors = Executors.newFixedThreadPool(2);
     Runnable first =
         () -> {
           try {
