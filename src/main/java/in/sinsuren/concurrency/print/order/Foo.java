@@ -1,27 +1,29 @@
 package in.sinsuren.concurrency.print.order;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.Phaser;
 
 public class Foo {
 
-  private Semaphore secondSemaphore = new Semaphore(0);
-  private Semaphore thirdSemaphore = new Semaphore(0);
+  private Phaser phaser;
 
-  public Foo() {}
+  public Foo(Phaser phaser) {
+    this.phaser = phaser;
+  }
 
   public void first(Runnable printFirst) throws InterruptedException {
     printFirst.run();
-    secondSemaphore.release(); // signal second can proceed
+    phaser.arrive();
   }
 
   public void second(Runnable printSecond) throws InterruptedException {
-    secondSemaphore.acquire(); // wait for first to complete
+    phaser.arriveAndAwaitAdvance();
     printSecond.run();
-    thirdSemaphore.release(); // signal third can proceed
+    phaser.awaitAdvance(0); // wait for first to complete
   }
 
   public void third(Runnable printThird) throws InterruptedException {
-    thirdSemaphore.acquire(); // wait for second to complete
+    phaser.arriveAndAwaitAdvance();
     printThird.run();
+    phaser.awaitAdvance(1); // wait for second to complete
   }
 }

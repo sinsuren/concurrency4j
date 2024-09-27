@@ -1,38 +1,20 @@
 package in.sinsuren.concurrency.print.order;
 
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Phaser;
 
 public class FooRunner {
   public static void main(String[] args) {
-
-    Foo foo = new Foo();
+    Phaser phaser = new Phaser(0);
+    Foo foo = new Foo(phaser);
     ExecutorService executors = Executors.newFixedThreadPool(3);
-    Runnable first =
-        () -> {
-          try {
-            foo.first(() -> System.out.println("first"));
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        };
+    Runnable first = new PhaseRunner(phaser, "first");
 
-    Runnable second =
-        () -> {
-          try {
-            foo.second(() -> System.out.println("second"));
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        };
-    Runnable third =
-        () -> {
-          try {
-            foo.third(() -> System.out.println("third"));
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        };
+    Runnable second = new PhaseRunner(phaser, "second");
+
+    Runnable third = new PhaseRunner(phaser, "third");
 
     executors.submit(third);
     executors.submit(first);
@@ -41,4 +23,3 @@ public class FooRunner {
     executors.shutdown();
   }
 }
-
