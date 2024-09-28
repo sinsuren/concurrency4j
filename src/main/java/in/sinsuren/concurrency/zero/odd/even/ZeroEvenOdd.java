@@ -1,12 +1,12 @@
 package in.sinsuren.concurrency.zero.odd.even;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Phaser;
 
 class ZeroEvenOdd {
   private int n;
-  private CountDownLatch zeroLatch = new CountDownLatch(0);
-  private CountDownLatch oddLatch = new CountDownLatch(1);
-  private CountDownLatch evenLatch = new CountDownLatch(1);
+  private Phaser phaser = new Phaser(1); // Register 1 for the main thread
 
   public ZeroEvenOdd(int n) {
     this.n = n;
@@ -14,32 +14,24 @@ class ZeroEvenOdd {
 
   public void zero(java.util.function.IntConsumer printNumber) throws InterruptedException {
     for (int i = 0; i < n; i++) {
-      zeroLatch.await(); // Wait for the signal to print zero
       printNumber.accept(0);
-      zeroLatch = new CountDownLatch(1); // Reset latch after printing zero
-      if (i % 2 == 0) {
-        oddLatch.countDown(); // Signal odd thread
-      } else {
-        evenLatch.countDown(); // Signal even thread
-      }
+      phaser.arriveAndAwaitAdvance(); // Signal odd/even thread
     }
   }
 
   public void odd(java.util.function.IntConsumer printNumber) throws InterruptedException {
     for (int i = 1; i <= n; i += 2) {
-      oddLatch.await(); // Wait for the signal to print odd
+      phaser.arriveAndAwaitAdvance(); // Wait for zero
       printNumber.accept(i);
-      oddLatch = new CountDownLatch(1); // Reset latch after printing odd
-      zeroLatch.countDown(); // Signal zero thread
+      phaser.arriveAndAwaitAdvance(); // Signal zero thread
     }
   }
 
   public void even(java.util.function.IntConsumer printNumber) throws InterruptedException {
     for (int i = 2; i <= n; i += 2) {
-      evenLatch.await(); // Wait for the signal to print even
+      phaser.arriveAndAwaitAdvance(); // Wait for zero
       printNumber.accept(i);
-      evenLatch = new CountDownLatch(1); // Reset latch after printing even
-      zeroLatch.countDown(); // Signal zero thread
+      phaser.arriveAndAwaitAdvance(); // Signal zero thread
     }
   }
 }
