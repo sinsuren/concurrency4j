@@ -1,17 +1,14 @@
 package in.sinsuren.concurrency.zero.odd.even;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.IntConsumer;
 
-class ZeroOddEven {
+class ZeroEvenOdd {
   private int n;
-  private CountDownLatch zeroLatch = new CountDownLatch(1);
-  private CountDownLatch oddLatch = new CountDownLatch(0);
-  private CountDownLatch evenLatch = new CountDownLatch(0);
+  private CountDownLatch zeroLatch = new CountDownLatch(0);
+  private CountDownLatch oddLatch = new CountDownLatch(1);
+  private CountDownLatch evenLatch = new CountDownLatch(1);
 
-  public ZeroOddEven(int n) {
+  public ZeroEvenOdd(int n) {
     this.n = n;
   }
 

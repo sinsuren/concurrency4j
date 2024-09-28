@@ -2,7 +2,7 @@ package in.sinsuren.concurrency.zero.odd.even;
 
 public class Main {
   public static void main(String[] args) {
-      ZeroOddEven zeroEvenOdd = new ZeroOddEven(10);
+      ZeroEvenOdd zeroEvenOdd = new ZeroEvenOdd(5);
 
     Runnable printZero =
         () -> {
