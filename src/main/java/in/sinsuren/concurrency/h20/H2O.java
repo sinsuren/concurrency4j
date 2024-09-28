@@ -1,36 +1,54 @@
 package in.sinsuren.concurrency.h20;
 
-public class H2O {
-    private int hydrogenCount;
-    private int oxygenCount;
+import java.util.concurrent.Semaphore;
 
-    public H2O() {
+public class H2O {
+  // Semaphore to limit the number of hydrogen and oxygen threads.
+  private Semaphore hydrogenSemaphore = new Semaphore(2);
+  private Semaphore oxygenSemaphore = new Semaphore(1);
+
+  // Barrier to ensure bonding only when two hydrogen and one oxygen are ready.
+  private final Object lock = new Object();
+  private int hydrogenCount = 0;
+  private int oxygenCount = 0;
+
+  public H2O() {}
+
+  public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
+    hydrogenSemaphore.acquire(); // Wait until it is hydrogen's turn.
+
+    synchronized (lock) {
+      hydrogenCount++;
+      // If we have two hydrogens and one oxygen, bond the molecule.
+      if (hydrogenCount == 2 && oxygenCount == 1) {
+        // Reset counters and release the locks.
         hydrogenCount = 0;
         oxygenCount = 0;
+        hydrogenSemaphore.release(2); // Allow the next hydrogen to proceed.
+        oxygenSemaphore.release(); // Allow the next oxygen to proceed.
+      }
     }
 
-    public synchronized void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
-        while (hydrogenCount == 2 && oxygenCount == 0) {
-            wait();
-        }
-        hydrogenCount++;
-        releaseHydrogen.run();
-        if (hydrogenCount == 2 && oxygenCount == 1) {
-            hydrogenCount = oxygenCount = 0;
-            notifyAll();
-        }
+    // Release hydrogen (bond it).
+    releaseHydrogen.run();
+  }
 
+  public void oxygen(Runnable releaseOxygen) throws InterruptedException {
+    oxygenSemaphore.acquire(); // Wait until it is oxygen's turn.
+
+    synchronized (lock) {
+      oxygenCount++;
+      // If we have two hydrogens and one oxygen, bond the molecule.
+      if (hydrogenCount == 2 && oxygenCount == 1) {
+        // Reset counters and release the locks.
+        hydrogenCount = 0;
+        oxygenCount = 0;
+        hydrogenSemaphore.release(2); // Allow the next hydrogen to proceed.
+        oxygenSemaphore.release(); // Allow the next oxygen to proceed.
+      }
     }
 
-    public synchronized void oxygen(Runnable releaseOxygen) throws InterruptedException {
-        while (hydrogenCount < 2 && oxygenCount == 1) {
-            wait();
-        }
-        oxygenCount++;
-        releaseOxygen.run();
-        if (hydrogenCount == 2 && oxygenCount == 1) {
-            hydrogenCount = oxygenCount = 0;
-            notifyAll();
-        }
-    }
+    // Release oxygen (bond it).
+    releaseOxygen.run();
+  }
 }
